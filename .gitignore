@@ -196,10 +196,10 @@ cython_debug/
 # .idea/artifacts
 # .idea/compiler.xml
 # .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
+.idea/modules.xml
+.idea/*.iml
 # .idea/modules
-# *.iml
+*.iml
 # *.ipr
 
 # CMake
@@ -237,3 +237,8 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+.idea/inspectionProfiles/*
+.idea/.gitignore
+.idea/misc.xml
+.idea/vcs.xml
