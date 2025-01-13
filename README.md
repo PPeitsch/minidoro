@@ -1,5 +1,6 @@
 # Minidoro 🍅
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](VERSION)
 [![Tests](https://github.com/PPeitsch/minidoro/workflows/Test/badge.svg)](https://github.com/PPeitsch/minidoro/actions)
 [![codecov](https://codecov.io/gh/PPeitsch/minidoro/graph/badge.svg?token=2EXsv64F24)](https://codecov.io/gh/PPeitsch/minidoro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
