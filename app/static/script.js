@@ -23,6 +23,14 @@ const TIMES = {
     'long break': 15
 };
 
+// Notification settings
+let notificationSettings = {
+    sound: true,
+    desktop: true,
+    tabTitle: true,
+    volume: 0.5
+};
+
 // Initialize timer
 function initTimer() {
     timeLeft = TIMES[currentMode] * 60;
@@ -34,7 +42,9 @@ function updateDisplay() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    document.title = `${timerDisplay.textContent} - Minidoro`;
+    if (!document.hidden) {
+        updateTabTitle();
+    }
 }
 
 // Toggle timer (start/pause)
@@ -54,13 +64,14 @@ function startTimer() {
     isRunning = true;
     updateControls('pause');
 
-    timer = setInterval(() => {
+    timer = setInterval(async () => {
         timeLeft--;
         updateDisplay();
+        updateTabTitle();
 
         if (timeLeft <= 0) {
             clearInterval(timer);
-            handleTimerComplete();
+            await handleTimerComplete();
         }
     }, 1000);
 }
@@ -82,32 +93,146 @@ function updateControls(state) {
 }
 
 // Handle timer completion
-function handleTimerComplete() {
+async function handleTimerComplete() {
     isRunning = false;
     updateControls('start');
-    playNotification();
+
+    // Play sound notification
+    if (notificationSettings.sound) {
+        await playNotificationSound();
+    }
+
+    // Show desktop notification
+    if (notificationSettings.desktop && Notification.permission === 'granted') {
+        showDesktopNotification();
+    }
+
+    // Update tab title
+    if (notificationSettings.tabTitle) {
+        updateTabTitle(true);
+    }
+
+    // Visual feedback
+    showVisualNotification();
+
+    // Reset timer
     timeLeft = TIMES[currentMode] * 60;
     updateDisplay();
 }
 
-// Play notification
-function playNotification() {
-    // Request notification permission if not granted
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
+// Play notification sound
+async function playNotificationSound() {
+    const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RSU0U...');
+    audio.volume = notificationSettings.volume;
+    try {
+        await audio.play();
+    } catch (error) {
+        console.error('Error playing notification sound:', error);
     }
+}
 
-    // Show notification if permitted
-    if (Notification.permission === 'granted') {
-        new Notification('Minidoro', {
-            body: `${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)} completed!`,
-            icon: '/favicon.ico'
-        });
+// Show desktop notification
+function showDesktopNotification() {
+    const notification = new Notification('Minidoro Timer Complete', {
+        body: `${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)} session completed!`,
+        icon: '/favicon.ico',
+        silent: true
+    });
+
+    notification.onclick = () => {
+        window.focus();
+        notification.close();
+    };
+}
+
+// Update tab title
+function updateTabTitle(completed = false) {
+    if (completed) {
+        document.title = `[DONE] Minidoro - ${currentMode}`;
+        setTimeout(() => {
+            document.title = `${timerDisplay.textContent} - Minidoro`;
+        }, 5000);
+    } else {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const time = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.title = `${time} - Minidoro${isRunning ? ' (Running)' : ''}`;
     }
+}
 
-    // Play sound
-    const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RSU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAASAAAeMwAUFBQUFCIiIiIiIjAwMDAwPj4+Pj4+TExMTExZWVlZWVlnZ2dnZ3V1dXV1dYODg4ODkZGRkZGRn5+fn5+frKysrKy6urq6urrIyMjIyNbW1tbW1uTk5OTk8vLy8vLy//////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAQKAAAAAAAAHjOZTf9/AAAAAAAAAAAAAAAAAAAAAP/7UMQAAAesTXWUEQBD+CtzK9QBTgnI3g5q7gNBYZC+2TRSL3p0LQxFvcjgwykz/7AsF7EglCvBxoZCE8QCDBB4kDEEgnncWx/aXxf/u0AQFkhFT/0Scp0SLv/z8tT//1qWoGQORv/7UsQJgAeYTNzdaAAIzwmba4wwAQQFgIcbG9o+T0tLqb/P8L6bq6m6ur9Laaqwk3/+tpaQAoEHOGZJJKkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk//tSxCMABPBO012xgAi8ipn9xhgBkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk//tSxFQABvWfVbmWAADeCyq3MwAAkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk');
-    audio.play();
+// Show visual notification
+function showVisualNotification() {
+    const timerContainer = document.querySelector('.timer-container');
+    timerContainer.classList.add('complete', 'timer-complete');
+
+    setTimeout(() => {
+        timerContainer.classList.remove('complete', 'timer-complete');
+    }, 2000);
+}
+
+// Load settings from localStorage
+function loadSettings() {
+    const defaultSettings = {
+        themeColor: '#2b5d7e',
+        invertLayout: false,
+        notifications: {
+            sound: true,
+            desktop: true,
+            tabTitle: true,
+            volume: 0.5
+        }
+    };
+
+    try {
+        const settings = JSON.parse(localStorage.getItem('minidoroSettings')) || defaultSettings;
+
+        // Apply theme settings
+        themeColorInput.value = settings.themeColor;
+        invertLayoutCheckbox.checked = settings.invertLayout;
+        document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+        document.querySelector('.container').classList.toggle('inverted', settings.invertLayout);
+
+        // Apply notification settings
+        notificationSettings = settings.notifications || defaultSettings.notifications;
+        document.getElementById('soundEnabled').checked = notificationSettings.sound;
+        document.getElementById('notificationsEnabled').checked = notificationSettings.desktop;
+        document.getElementById('tabTitleEnabled').checked = notificationSettings.tabTitle;
+        document.getElementById('soundVolume').value = notificationSettings.volume * 100;
+    } catch (e) {
+        console.error('Error loading settings:', e);
+    }
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    const settings = {
+        themeColor: themeColorInput.value,
+        invertLayout: invertLayoutCheckbox.checked,
+        notifications: notificationSettings
+    };
+
+    localStorage.setItem('minidoroSettings', JSON.stringify(settings));
+
+    // Apply settings
+    document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+    document.querySelector('.container').classList.toggle('inverted', settings.invertLayout);
+}
+
+// Request notification permission
+async function requestNotificationPermission() {
+    if (Notification.permission === 'default') {
+        try {
+            const permission = await Notification.requestPermission();
+            notificationSettings.desktop = permission === 'granted';
+            document.getElementById('notificationsEnabled').checked = notificationSettings.desktop;
+            saveSettings();
+        } catch (error) {
+            console.error('Error requesting notification permission:', error);
+            notificationSettings.desktop = false;
+            document.getElementById('notificationsEnabled').checked = false;
+            saveSettings();
+        }
+    }
 }
 
 // Switch timer mode
@@ -118,41 +243,6 @@ function switchMode(mode) {
     currentMode = mode.toLowerCase();
     timeLeft = TIMES[currentMode] * 60;
     updateDisplay();
-}
-
-// Save settings to localStorage
-function saveSettings() {
-    const settings = {
-        themeColor: themeColorInput.value,
-        invertLayout: invertLayoutCheckbox.checked
-    };
-    localStorage.setItem('minidoroSettings', JSON.stringify(settings));
-    applySettings(settings);
-    settingsModal.style.display = 'none';
-}
-
-// Load settings from localStorage
-function loadSettings() {
-    const defaultSettings = {
-        themeColor: '#2b5d7e',
-        invertLayout: false
-    };
-
-    try {
-        const settings = JSON.parse(localStorage.getItem('minidoroSettings')) || defaultSettings;
-        themeColorInput.value = settings.themeColor;
-        invertLayoutCheckbox.checked = settings.invertLayout;
-        applySettings(settings);
-    } catch (e) {
-        console.error('Error loading settings:', e);
-        applySettings(defaultSettings);
-    }
-}
-
-// Apply settings to the UI
-function applySettings(settings) {
-    document.documentElement.style.setProperty('--theme-color', settings.themeColor);
-    document.querySelector('.container').classList.toggle('inverted', settings.invertLayout);
 }
 
 // Event Listeners
@@ -179,17 +269,35 @@ closeButtons.forEach(button => {
 
 saveSettingsBtn.addEventListener('click', saveSettings);
 
+// Notification settings event listeners
+document.getElementById('soundEnabled').addEventListener('change', (e) => {
+    notificationSettings.sound = e.target.checked;
+    saveSettings();
+});
+
+document.getElementById('notificationsEnabled').addEventListener('change', async (e) => {
+    notificationSettings.desktop = e.target.checked;
+    if (e.target.checked) {
+        await requestNotificationPermission();
+    }
+    saveSettings();
+});
+
+document.getElementById('tabTitleEnabled').addEventListener('change', (e) => {
+    notificationSettings.tabTitle = e.target.checked;
+    saveSettings();
+});
+
+document.getElementById('soundVolume').addEventListener('input', (e) => {
+    notificationSettings.volume = e.target.value / 100;
+    saveSettings();
+});
+
 // Close modal when clicking outside
 window.addEventListener('click', (event) => {
     if (event.target === settingsModal) {
         settingsModal.style.display = 'none';
     }
-});
-
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-    loadSettings();
-    initTimer();
 });
 
 // Handle keyboard shortcuts
@@ -207,4 +315,11 @@ document.addEventListener('visibilitychange', () => {
     } else {
         updateDisplay();
     }
+});
+
+// Initialize app
+document.addEventListener('DOMContentLoaded', async () => {
+    loadSettings();
+    initTimer();
+    await requestNotificationPermission();
 });

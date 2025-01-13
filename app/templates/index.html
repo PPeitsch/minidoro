@@ -50,6 +50,27 @@
                 <label for="invertLayout">Invert Layout:</label>
                 <input type="checkbox" id="invertLayout">
             </div>
+            <div class="setting-item">
+                <h3>Notifications</h3>
+                <div class="notification-options">
+                    <label>
+                        <input type="checkbox" id="soundEnabled" checked>
+                        Enable Sound
+                    </label>
+                    <label>
+                        <input type="checkbox" id="notificationsEnabled" checked>
+                        Enable Desktop Notifications
+                    </label>
+                    <label>
+                        <input type="checkbox" id="tabTitleEnabled" checked>
+                        Enable Tab Title Notifications
+                    </label>
+                </div>
+                <div class="volume-control">
+                    <label for="soundVolume">Sound Volume:</label>
+                    <input type="range" id="soundVolume" min="0" max="100" value="50">
+                </div>
+            </div>
             <button id="saveSettings">Save Settings</button>
         </div>
     </div>
