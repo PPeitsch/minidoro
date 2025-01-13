@@ -122,7 +122,7 @@ async function handleTimerComplete() {
 
 // Play notification sound
 async function playNotificationSound() {
-    const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RSU0U...');
+    const audio = new Audio('/static/notification.mp3');
     audio.volume = notificationSettings.volume;
     try {
         await audio.play();
