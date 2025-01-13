@@ -10,7 +10,7 @@
 
 A minimalist Pomodoro timer web application built with Flask. Simple, clean, and distraction-free focus timer with customizable themes and layouts.
 
-![Minidoro Screenshot](https://via.placeholder.com/800x400?text=Minidoro+Screenshot)
+![Minidoro Screenshot](docs/images/app-screenshot.png)
 
 ## ✨ Features
 
