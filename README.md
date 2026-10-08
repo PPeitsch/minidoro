@@ -57,8 +57,9 @@ python run.py
 
 ## 🧪 Testing
 
-Run the tests with:
+Install the test dependencies and run the tests:
 ```bash
+pip install -r requirements-dev.txt
 pytest tests/ -v --cov=app
 ```
 
