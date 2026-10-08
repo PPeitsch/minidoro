@@ -78,3 +78,12 @@ def test_static_paths_configuration():
     """Test static folder configuration"""
     assert app.static_folder is not None
     assert "static" in app.static_folder
+
+
+def test_health(client):
+    """Test the health check answers ok and the version"""
+    rv = client.get("/health")
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data["status"] == "ok"
+    assert data["version"]

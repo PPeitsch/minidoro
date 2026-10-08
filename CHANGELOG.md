@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- `/health` para un monitor: responde `ok` y la versión (`VERSION`).
+
 ## [1.0.0] - 2024-01-13
 Primera versión estable con todas las funcionalidades básicas.
 
